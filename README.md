@@ -5,6 +5,9 @@
 
 ## [Download the latest version](https://github.com/deenholden/Auto-Folder-Forge/releases)
 
+> [!IMPORTANT]
+> At this time, the program does not have a digital certificate, so Windows may flag it as malware when it runs.
+
 AutoFolderForge is a free open-source tool that helps you optimize your workflow
 
   <p align="center">

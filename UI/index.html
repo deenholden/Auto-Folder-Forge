@@ -1,0 +1,774 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Folder Forge</title>
+
+<style>
+/* ==========================================
+   COLOR THEMES
+   Dark is the default; the others override
+   the same variables via <html data-theme>.
+   ========================================== */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #19191c;
+  --panel: #303036;
+  --panel2: #2a2a2e;
+  --border: #424249;
+  --text: #F2F3F6;
+  --text-strong: #ffffff;
+  --text-soft: #C0C5D0;
+  --text-action: #d8dce4;
+  --muted: #9CA6B5;
+  --faint: #818B9B;
+  --subtle: #667080;
+  --accent: #D6A94A;
+  --accent-hover: #E7BD68;
+  --accent-soft: #D6A94A22;
+  --on-accent: #20242D;
+  --danger: #ff8d8d;
+}
+
+:root[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg: #0a1224;
+  --panel: #12203b;
+  --panel2: #1a2d52;
+  --border: #2b4170;
+  --text: #e6f0ff;
+  --text-strong: #ffffff;
+  --text-soft: #b4c8e8;
+  --text-action: #cfe0fa;
+  --muted: #8aa4cc;
+  --faint: #7089b3;
+  --subtle: #5d759f;
+  --accent: #4cc2ff;
+  --accent-hover: #7dd3ff;
+  --accent-soft: #4cc2ff33;
+  --on-accent: #04192b;
+  --danger: #ff8d8d;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef1f6;
+  --panel: #ffffff;
+  --panel2: #e8ecf3;
+  --border: #cbd3df;
+  --text: #1b2230;
+  --text-strong: #1b2230;
+  --text-soft: #3b4658;
+  --text-action: #2a3445;
+  --muted: #5a667a;
+  --faint: #647084;
+  --subtle: #6f7b8f;
+  --accent: #9A6700;
+  --accent-hover: #7F5400;
+  --accent-soft: #9A670033;
+  --on-accent: #ffffff;
+  --danger: #c93434;
+}
+
+:root[data-theme="purple"] {
+  color-scheme: dark;
+  --bg: #15101f;
+  --panel: #241b36;
+  --panel2: #302548;
+  --border: #483a68;
+  --text: #f3eefc;
+  --text-strong: #ffffff;
+  --text-soft: #cdbfe6;
+  --text-action: #ddd0f2;
+  --muted: #a99cc6;
+  --faint: #8c7fab;
+  --subtle: #7a6d95;
+  --accent: #b388ff;
+  --accent-hover: #c8a6ff;
+  --accent-soft: #b388ff33;
+  --on-accent: #1a0f2e;
+  --danger: #ff8d8d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 30px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", sans-serif;
+}
+
+.app {
+  max-width: 650px;
+  margin: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--panel2);
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+}
+
+h1 {
+  font-size: 23px;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 5px;
+  letter-spacing: 1.5px;
+}
+
+.version {
+  color: var(--accent);
+  font-size: 11px;
+  border: 1px solid var(--accent);
+  padding: 6px 10px;
+  border-radius: 20px;
+}
+
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.theme-swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: linear-gradient(135deg, var(--sw-bg) 50%, var(--sw-accent) 50%);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+
+.theme-swatch:hover {
+  transform: scale(1.12);
+  border-color: var(--accent);
+}
+
+.theme-swatch.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.theme-swatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.section { margin-top: 23px; }
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+}
+
+input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-strong);
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 14px;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--accent);
+}
+
+.templates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.template {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 19px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: .18s;
+  color: var(--text-strong);
+}
+
+.template:hover {
+  background: var(--panel2);
+  transform: translateY(-2px);
+}
+
+.template.active {
+  background: var(--panel2);
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+.template-icon {
+  font-size: 27px;
+  margin-bottom: 9px;
+}
+
+.template strong {
+  display: block;
+  font-size: 14px;
+}
+
+.template small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.location {
+  display: grid;
+  grid-template-columns: 1fr 105px;
+  gap: 9px;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.browse {
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  color: var(--text-strong);
+  border-radius: 9px;
+  font-weight: 600;
+}
+
+.browse:hover { border-color: var(--accent); }
+
+.included {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 10px;
+}
+
+.folder {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.folder-icon { color: var(--accent); }
+
+.create {
+  width: 100%;
+  height: 54px;
+  margin-top: 25px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  transition: .2s;
+}
+
+.create:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.create:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.status {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 14px;
+  min-height: 18px;
+}
+
+.footer {
+  text-align: center;
+  color: var(--subtle);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-top: 25px;
+}
+
+.footer-link {
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.footer-link:hover { color: var(--accent); }
+
+.template-tabs { display:flex; gap:8px; margin-bottom:12px; }
+.tab-btn { flex:1; padding:11px; border:1px solid var(--border); border-radius:9px; background:var(--panel); color:var(--muted); font-weight:700; }
+.tab-btn.active { border-color:var(--accent); color:var(--accent); background:var(--panel2); }
+.template-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.template-card { position:relative; background:var(--panel); border:1px solid var(--border); border-radius:11px; padding:15px 10px; color:var(--text-strong); text-align:center; }
+.template-card.active { border-color:var(--accent); background:var(--panel2); }
+.template-card strong { display:block; overflow-wrap:anywhere; }
+.template-card small { display:block; color:var(--muted); margin-top:5px; }
+.manage { display:flex; gap:8px; margin-top:12px; }
+.secondary { flex:1; min-height:40px; border:1px solid var(--border); border-radius:8px; background:var(--panel2); color:var(--text-strong); font-weight:600; }
+.secondary:hover { border-color:var(--accent); }
+.editor { display:none; margin-top:14px; padding:15px; background:var(--panel); border:1px solid var(--border); border-radius:11px; }
+.editor.open { display:block; }
+.editor-title { font-size:12px; font-weight:800; letter-spacing:1px; margin-bottom:12px; }
+.folder-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+
+.folder-tree { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
+.tree-node { min-width:0; }
+.tree-node-row { display:flex; align-items:center; gap:6px; }
+.tree-node-row input { height:36px; min-width:0; flex:1; }
+.tree-children { margin:7px 0 2px 18px; padding-left:12px; border-left:1px solid var(--border); display:flex; flex-direction:column; gap:7px; }
+.tree-action { min-height:34px; padding:0 9px; border:1px solid var(--border); border-radius:7px; background:var(--panel2); color:var(--text-action); font-size:11px; white-space:nowrap; }
+.tree-action:hover { border-color:var(--accent); }
+.tree-remove { width:34px; min-width:34px; padding:0; color:var(--danger); }
+.included { display:flex; flex-direction:column; gap:8px; }
+.included-tree { display:flex; flex-direction:column; gap:7px; }
+.included-node { display:flex; align-items:center; gap:8px; min-height:20px; font-size:13px; overflow-wrap:anywhere; }
+.included-children { margin:4px 0 0 13px; padding-left:13px; border-left:1px solid var(--border); display:flex; flex-direction:column; gap:7px; }
+
+.folder-row input { height:38px; }
+.remove-folder { width:38px; height:38px; flex-shrink:0; border:1px solid var(--border); border-radius:8px; background:var(--panel2); color:var(--danger); }
+.editor-actions { display:flex; gap:8px; margin-top:14px; }
+.editor-message { margin-top:12px; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--danger); text-align:center; overflow-wrap:anywhere; }
+.editor-message:empty { display:none; }
+.editor-actions button { flex:1; min-height:42px; border-radius:8px; font-weight:700; }
+.save-template { border:0; background:var(--accent); color:var(--on-accent); }
+.cancel-template { border:1px solid var(--border); background:var(--panel2); color:var(--text-strong); }
+.empty { color:var(--muted); font-size:12px; text-align:center; padding:15px; grid-column:1/-1; }
+
+@media(max-width:520px) {
+  body { padding: 20px; }
+  .included { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+// Applied in <head> so the saved theme is on screen from the first paint
+// (no flash of the default theme on startup).
+const THEMES = ["Dark", "Midnight", "Light", "Purple"];
+const THEME_STORAGE_KEY = "autoFolderForgeTheme";
+let currentTheme = "Dark";
+
+function readSavedTheme() {
+  // The settings.ini value (via AutoHotkey) is the source of truth.
+  try {
+    const saved = String(window.chrome.webview.hostObjects.sync.app.getTheme());
+    if (THEMES.includes(saved)) return saved;
+  } catch (error) {
+    // Bridge unavailable (e.g. page opened in a plain browser): use the local copy.
+    try {
+      const local = localStorage.getItem(THEME_STORAGE_KEY);
+      if (THEMES.includes(local)) return local;
+    } catch (ignored) {}
+  }
+  return "Dark";
+}
+
+function setThemeAttribute(name) {
+  currentTheme = name;
+  document.documentElement.setAttribute("data-theme", name.toLowerCase());
+}
+
+setThemeAttribute(readSavedTheme());
+</script>
+</head>
+
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="logo">🎬</div>
+    <div>
+      <h1>AUTO FOLDER FORGE</h1>
+      <div class="subtitle">Create your folder tree quickly</div>
+    </div>
+    <div class="theme-switcher" role="group" aria-label="Color theme">
+      <button class="theme-swatch" data-theme-name="Dark" title="Dark" aria-label="Dark theme"
+        style="--sw-bg:#19191c;--sw-accent:#D6A94A"></button>
+      <button class="theme-swatch" data-theme-name="Midnight" title="Midnight" aria-label="Midnight theme"
+        style="--sw-bg:#0a1224;--sw-accent:#4cc2ff"></button>
+      <button class="theme-swatch" data-theme-name="Light" title="Light" aria-label="Light theme"
+        style="--sw-bg:#eef1f6;--sw-accent:#9A6700"></button>
+      <button class="theme-swatch" data-theme-name="Purple" title="Purple" aria-label="Purple theme"
+        style="--sw-bg:#15101f;--sw-accent:#b388ff"></button>
+    </div>
+    <div class="version">VER 1.0</div>
+  </header>
+
+  <div class="section">
+    <div class="label">PROJECT NAME</div>
+    <input id="projectName" type="text"
+      placeholder="My New Project" value="My_New_Project">
+  </div>
+
+<div class="section">
+  <label style="display:flex; align-items:center; gap:10px;
+                color:var(--text-soft); font-size:13px; cursor:pointer;">
+    <input
+      id="addDate"
+      type="checkbox"
+      checked
+      style="width:17px;height:17px;accent-color:var(--accent);">
+    Automatically add date to project name
+  </label>
+  <div style="color:var(--faint);font-size:11px;margin-top:6px;">
+    Format: DD-MM-YYYY
+  </div>
+</div>
+
+  <div class="section">
+    <div class="label">PROJECT TEMPLATE</div>
+    <div class="template-tabs">
+      <button class="tab-btn active" id="builtInTab">BUILT-IN</button>
+      <button class="tab-btn" id="customTab">MY TEMPLATES</button>
+    </div>
+    <div class="template-list" id="templateList"></div>
+    <div class="manage" id="templateManage" style="display:none">
+      <button class="secondary" id="newTemplate">＋ NEW TEMPLATE</button>
+      <button class="secondary" id="editTemplate">✎ EDIT</button>
+      <button class="secondary" id="deleteTemplate">✕ DELETE</button>
+    </div>
+    <div class="editor" id="templateEditor">
+      <div class="editor-title" id="editorTitle">NEW TEMPLATE</div>
+      <input id="templateName" type="text" placeholder="Template name">
+      <div class="label" style="margin-top:14px">FOLDER TREE</div>
+      <div id="folderEditor"></div>
+      <button class="secondary" id="addFolder" style="width:100%;margin-top:10px">＋ ADD ROOT FOLDER</button>
+      <div class="editor-message" id="editorMessage" role="alert"></div>
+      <div class="editor-actions">
+        <button class="save-template" id="saveTemplate">SAVE TEMPLATE</button>
+        <button class="cancel-template" id="cancelTemplate">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="label">PROJECT LOCATION</div>
+
+    <div class="location">
+      <input id="destination"
+        type="text"
+        placeholder="Select project location"
+        readonly>
+      <button class="browse" id="browse">📁 BROWSE</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="label">INCLUDED IN PROJECT</div>
+    <div class="included" id="included"></div>
+  </div>
+
+  <button class="create" id="create">
+    ＋ CREATE PROJECT
+  </button>
+
+  <div class="status" id="status">
+    READY TO CREATE YOUR PROJECT
+  </div>
+
+  <div class="footer">
+    AUTO FOLDER FORGE · CREATED BY
+      <a href="#" class="footer-link" data-url="https://t.me/montagerr1337">MONTAGERR</a>
+  </div>
+
+</div>
+
+<script>
+const builtInTemplates = {
+  "YouTube": ["01_FOOTAGE", "02_AUDIO\\MUSIC", "02_AUDIO\\SFX", "03_GRAPHICS", "04_PROJECT_FILES\\PREMIERE", "05_EXPORTS", "06_PROXY"],
+  "Shorts/TikTok": ["01_Footage", "02_Music", "03_Graphics", "04_Export"]
+};
+let customTemplates = {};
+let selectedTemplate = "YouTube";
+let activeTab = "builtIn";
+let editingName = null;
+let editorTree = [];
+let nextFolderId = 1;
+const $ = id => document.getElementById(id);
+const included = $("included"), status = $("status"), createButton = $("create");
+
+function appBridge() { return window.chrome.webview.hostObjects.sync.app; }
+function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function currentFolders() {
+  return Object.prototype.hasOwnProperty.call(builtInTemplates, selectedTemplate)
+    ? builtInTemplates[selectedTemplate]
+    : (customTemplates[selectedTemplate] || []);
+}
+function countFolders(paths) { return paths.length; }
+function renderTemplates() {
+  const list = $("templateList"); list.innerHTML = "";
+  const source = activeTab === "builtIn" ? builtInTemplates : customTemplates;
+  const names = Object.keys(source);
+  if (!names.length) list.innerHTML = '<div class="empty">No custom templates yet. Create your first one.</div>';
+  names.forEach(name => {
+    const card = document.createElement("button");
+    card.className = "template-card" + (selectedTemplate === name ? " active" : "");
+    card.innerHTML = `<div class="template-icon">${activeTab === "builtIn" ? (name === "YouTube" ? "▶️" : "📱") : "📁"}</div><strong>${escapeHtml(name)}</strong><small>${countFolders(source[name])} folders</small>`;
+    card.addEventListener("click", () => { selectedTemplate = name; renderTemplates(); updateIncluded(); });
+    list.appendChild(card);
+  });
+  $("templateManage").style.display = activeTab === "custom" ? "flex" : "none";
+  $("editTemplate").disabled = !Object.prototype.hasOwnProperty.call(customTemplates, selectedTemplate);
+  $("deleteTemplate").disabled = !Object.prototype.hasOwnProperty.call(customTemplates, selectedTemplate);
+}
+function pathsToTree(paths) {
+  const roots = [];
+  for (const rawPath of (paths || [])) {
+    const parts = String(rawPath).split(/[\\/]+/).map(part => part.trim()).filter(Boolean);
+    let siblings = roots;
+    for (const part of parts) {
+      let node = siblings.find(item => item.name.toLowerCase() === part.toLowerCase());
+      if (!node) {
+        node = { id: nextFolderId++, name: part, children: [] };
+        siblings.push(node);
+      }
+      siblings = node.children;
+    }
+  }
+  return roots;
+}
+function treeToPaths(nodes, parentPath = "", output = []) {
+  for (const node of nodes) {
+    const name = String(node.name || "").trim();
+    if (!name) throw new Error("NAME EVERY FOLDER BEFORE SAVING");
+    if (/[\\/:*?"<>|]/.test(name) || name === "." || name === ".." || /[. ]$/.test(name)) {
+      throw new Error(`INVALID FOLDER NAME: ${name}`);
+    }
+    const path = parentPath ? parentPath + "\\" + name : name;
+    output.push(path);
+    treeToPaths(node.children || [], path, output);
+  }
+  return output;
+}
+function renderIncludedTree(nodes, parent) {
+  for (const node of nodes) {
+    const wrap = document.createElement("div");
+    const row = document.createElement("div"); row.className = "included-node";
+    const icon = document.createElement("span"); icon.className = "folder-icon"; icon.textContent = "📁";
+    const name = document.createElement("span"); name.textContent = node.name;
+    row.append(icon, name); wrap.appendChild(row);
+    if (node.children && node.children.length) {
+      const children = document.createElement("div"); children.className = "included-children";
+      renderIncludedTree(node.children, children); wrap.appendChild(children);
+    }
+    parent.appendChild(wrap);
+  }
+}
+function updateIncluded() {
+  included.innerHTML = "";
+  const paths = currentFolders();
+  if (!paths.length) {
+    const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = "No folders in this template.";
+    included.appendChild(empty); return;
+  }
+  const tree = document.createElement("div"); tree.className = "included-tree";
+  renderIncludedTree(pathsToTree(paths), tree); included.appendChild(tree);
+}
+function switchTab(tab) {
+  activeTab = tab;
+  $("builtInTab").classList.toggle("active", tab === "builtIn");
+  $("customTab").classList.toggle("active", tab === "custom");
+  if (tab === "builtIn" && !builtInTemplates[selectedTemplate]) selectedTemplate = "YouTube";
+  if (tab === "custom" && !Object.prototype.hasOwnProperty.call(customTemplates, selectedTemplate)) selectedTemplate = Object.keys(customTemplates)[0] || "";
+  renderTemplates(); updateIncluded();
+}
+function makeFolder(name = "") { return { id: nextFolderId++, name, children: [] }; }
+function renderFolderEditor() {
+  const root = $("folderEditor"); root.innerHTML = "";
+  root.className = "folder-tree";
+  function renderNodes(nodes, container) {
+    nodes.forEach((node, index) => {
+      const wrap = document.createElement("div"); wrap.className = "tree-node";
+      const row = document.createElement("div"); row.className = "tree-node-row";
+      const input = document.createElement("input"); input.type = "text"; input.value = node.name; input.placeholder = "Folder name";
+      input.addEventListener("input", () => { node.name = input.value; });
+      const addChild = document.createElement("button"); addChild.className = "tree-action"; addChild.textContent = "＋ SUB";
+      addChild.title = "Add subfolder";
+      addChild.addEventListener("click", () => { node.children.push(makeFolder()); renderFolderEditor(); });
+      const remove = document.createElement("button"); remove.className = "tree-action tree-remove"; remove.textContent = "✕"; remove.title = "Delete folder and all subfolders";
+      remove.addEventListener("click", () => { nodes.splice(index, 1); renderFolderEditor(); });
+      row.append(input, addChild, remove); wrap.appendChild(row);
+      if (node.children && node.children.length) {
+        const children = document.createElement("div"); children.className = "tree-children";
+        renderNodes(node.children, children); wrap.appendChild(children);
+      }
+      container.appendChild(wrap);
+    });
+  }
+  renderNodes(editorTree, root);
+}
+function openEditor(name = null) {
+  editingName = name;
+  $("editorTitle").textContent = name ? "EDIT TEMPLATE" : "NEW TEMPLATE";
+  $("templateName").value = name || "";
+  nextFolderId = 1;
+  editorTree = name ? pathsToTree(customTemplates[name]) : [];
+  showEditorMessage("");
+  renderFolderEditor(); $("templateEditor").classList.add("open");
+}
+function closeEditor() { $("templateEditor").classList.remove("open"); editingName = null; showEditorMessage(""); }
+function showEditorMessage(text) { $("editorMessage").textContent = text || ""; }
+function editorError(text) { status.textContent = text; showEditorMessage(text); }
+function persistTemplates(next) {
+  const bridge = appBridge();
+  if (!bridge) {
+    throw new Error("AutoHotkey save bridge is unavailable. Restart the application and try again.");
+  }
+
+  const payload = JSON.stringify(next);
+  const result = bridge.saveCustomTemplates(payload);
+  if (String(result) !== "OK") {
+    throw new Error(String(result || "AutoHotkey did not confirm that the templates were saved."));
+  }
+  customTemplates = next;
+}
+$("builtInTab").addEventListener("click", () => switchTab("builtIn"));
+$("customTab").addEventListener("click", () => switchTab("custom"));
+$("newTemplate").addEventListener("click", () => openEditor());
+$("editTemplate").addEventListener("click", () => { if (customTemplates[selectedTemplate]) openEditor(selectedTemplate); });
+$("deleteTemplate").addEventListener("click", () => {
+  if (!customTemplates[selectedTemplate]) return;
+  if (!confirm(`Delete template "${selectedTemplate}"?`)) return;
+  const next = {...customTemplates}; delete next[selectedTemplate];
+  try { persistTemplates(next); selectedTemplate = Object.keys(customTemplates)[0] || ""; renderTemplates(); updateIncluded(); status.textContent = "TEMPLATE DELETED"; }
+  catch (e) { status.textContent = e.message; }
+});
+$("addFolder").addEventListener("click", () => { editorTree.push(makeFolder()); renderFolderEditor(); });
+$("cancelTemplate").addEventListener("click", closeEditor);
+$("saveTemplate").addEventListener("click", () => {
+  showEditorMessage("");
+  const name = $("templateName").value.trim();
+  let folders;
+  try { folders = treeToPaths(editorTree); } catch (error) { editorError(error.message); return; }
+  if (!name) { editorError("ENTER TEMPLATE NAME"); return; }
+  if (Object.prototype.hasOwnProperty.call(builtInTemplates, name)) { editorError("THIS NAME IS RESERVED"); return; }
+  if (!folders.length) { editorError("ADD AT LEAST ONE FOLDER"); return; }
+  const normalized = folders.map(path => path.toLowerCase());
+  if (new Set(normalized).size !== normalized.length) { editorError("DUPLICATE FOLDER PATH"); return; }
+  const next = {...customTemplates};
+  if (editingName && editingName !== name) delete next[editingName];
+  next[name] = folders;
+  const saveButton = $("saveTemplate");
+  try {
+    saveButton.disabled = true;
+    status.textContent = "SAVING TEMPLATE...";
+    persistTemplates(next);
+    selectedTemplate = name;
+    closeEditor();
+    renderTemplates();
+    updateIncluded();
+    status.textContent = "TEMPLATE SAVED";
+  } catch (e) {
+    console.error("Template save failed:", e);
+    editorError("SAVE FAILED: " + (e && e.message ? e.message : String(e)));
+  } finally {
+    saveButton.disabled = false;
+  }
+});
+
+try {
+  const bridge = appBridge();
+  const savedPath = bridge.getLastDestination();
+  if (savedPath) $("destination").value = savedPath;
+  customTemplates = JSON.parse(bridge.getCustomTemplates() || "{}");
+} catch (error) { console.log("Could not load application settings", error); }
+
+$("browse").addEventListener("click", () => {
+  try { const path = appBridge().chooseFolder(); if (path) { $("destination").value = path; status.textContent = "LOCATION SELECTED"; } }
+  catch (error) { status.textContent = "Could not open folder selector"; }
+});
+createButton.addEventListener("click", () => {
+  let name = $("projectName").value.trim();
+  if ($("addDate").checked) { const now = new Date(); name += "_" + String(now.getDate()).padStart(2,"0") + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + now.getFullYear(); }
+  const destination = $("destination").value.trim();
+  if (!name || !destination) { status.textContent = "ENTER PROJECT NAME AND LOCATION"; return; }
+  if (!selectedTemplate) { status.textContent = "SELECT A TEMPLATE"; return; }
+  try {
+    createButton.disabled = true; status.textContent = "CREATING PROJECT...";
+    const result = appBridge().createProject(name, selectedTemplate, destination);
+    status.textContent = result === "OK" ? "PROJECT CREATED SUCCESSFULLY" : result;
+  } catch (error) { status.textContent = "ERROR: " + error.message; }
+  finally { createButton.disabled = false; }
+});
+
+// ==========================================
+// COLOR THEMES
+// ==========================================
+function renderThemeButtons() {
+  document.querySelectorAll(".theme-swatch").forEach(button => {
+    const active = button.dataset.themeName === currentTheme;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+function persistTheme(name) {
+  try { localStorage.setItem(THEME_STORAGE_KEY, name); } catch (ignored) {}
+  const result = appBridge().saveTheme(name);
+  if (String(result) !== "OK") throw new Error(String(result || "No confirmation from AutoHotkey"));
+}
+document.querySelectorAll(".theme-swatch").forEach(button => {
+  button.addEventListener("click", () => {
+    const name = button.dataset.themeName;
+    if (!THEMES.includes(name) || name === currentTheme) return;
+    setThemeAttribute(name);
+    renderThemeButtons();
+    try { persistTheme(name); status.textContent = "THEME: " + name.toUpperCase(); }
+    catch (error) { status.textContent = "THEME NOT SAVED: " + error.message; }
+  });
+});
+renderThemeButtons();
+
+// Footer link: open in the default browser through AutoHotkey
+document.querySelectorAll(".footer-link").forEach(link => {
+  link.addEventListener("click", event => {
+    event.preventDefault();
+    try { appBridge().openLink(link.dataset.url); }
+    catch (error) { status.textContent = "Could not open link"; }
+  });
+});
+
+renderTemplates(); updateIncluded();
+</script>
+</body>
+</html>

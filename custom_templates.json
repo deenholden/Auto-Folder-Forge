@@ -1,2 +1,9 @@
 ﻿{
+  "Videos":[
+    "Footage",
+    "Sound",
+    "Sound\\Sfx",
+    "Sound\\Music",
+    "Export"
+  ]
 }
